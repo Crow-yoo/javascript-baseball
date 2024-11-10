@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var readline = require("readline");
-// 서로 다른 세자리 수 생성 함수 (랜던값)
+// 서로 다른 세자리 수 생성 함수 (랜덤값)
 function generateRandomNumbers() {
     var randomNumbers = [];
     while (randomNumbers.length < 3) {
@@ -57,6 +57,7 @@ function generateRandomNumbers() {
     }
     return randomNumbers;
 }
+// 스트라이크, 볼, 낫싱 계산 함수
 function getHint(computerNumber, userNumber) {
     var strikes = 0;
     var balls = 0;
@@ -90,7 +91,8 @@ function getHint(computerNumber, userNumber) {
         return "".concat(balls, "\uBCFC ").concat(strikes, "\uC2A4\uD2B8\uB77C\uC774\uD06C");
     }
 }
-function getNumber(rl) {
+// 게임 시작 함수
+function gameStart(rl) {
     return __awaiter(this, void 0, void 0, function () {
         var computerNumber, userInput, userNumber, result;
         return __generator(this, function (_a) {
@@ -128,7 +130,8 @@ function getNumber(rl) {
         });
     });
 }
-function gameStart() {
+// 애플리케이션 실행 함수
+function applicationStart() {
     return __awaiter(this, void 0, void 0, function () {
         var rl, input;
         return __generator(this, function (_a) {
@@ -147,7 +150,7 @@ function gameStart() {
                 case 2:
                     input = _a.sent();
                     if (!(input === '1')) return [3 /*break*/, 4];
-                    return [4 /*yield*/, getNumber(rl)];
+                    return [4 /*yield*/, gameStart(rl)];
                 case 3:
                     _a.sent();
                     return [3 /*break*/, 5];
@@ -170,4 +173,4 @@ function gameStart() {
         });
     });
 }
-gameStart();
+applicationStart();
