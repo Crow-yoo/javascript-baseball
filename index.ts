@@ -1,6 +1,6 @@
 import * as readline from 'readline';
 
-// 서로 다른 세자리 수 생성 함수 (랜던값)
+// 서로 다른 세자리 수 생성 함수 (랜덤값)
 function generateRandomNumbers(): number[] {
     const randomNumbers: number[] = [];
 
@@ -24,6 +24,7 @@ function generateRandomNumbers(): number[] {
     return randomNumbers;
 }
 
+// 스트라이크, 볼, 낫싱 계산 함수
 function getHint(computerNumber: number[], userNumber: number[]): string {
     let strikes: number = 0;
     let balls: number = 0;
@@ -56,7 +57,8 @@ function getHint(computerNumber: number[], userNumber: number[]): string {
     }
 }
 
-async function getNumber(rl: readline.Interface): Promise<void> {
+// 게임 시작 함수
+async function gameStart(rl: readline.Interface): Promise<void> {
     console.log('\n');
     console.log('컴퓨터가 숫자를 뽑았습니다.\n');
     const computerNumber = generateRandomNumbers();
@@ -95,7 +97,8 @@ async function getNumber(rl: readline.Interface): Promise<void> {
     }
 }
 
-async function gameStart(): Promise<void> {
+// 애플리케이션 실행 함수
+async function applicationStart(): Promise<void> {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -110,7 +113,7 @@ async function gameStart(): Promise<void> {
         );
 
         if (input === '1') {
-            await getNumber(rl);
+            await gameStart(rl);
         } else if (input === '9') {
             // console.log('\n');
             console.log('\n애플리케이션이 종료되었습니다.');
@@ -123,4 +126,4 @@ async function gameStart(): Promise<void> {
     }
 }
 
-gameStart();
+applicationStart();
