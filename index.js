@@ -37,47 +37,52 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var readline = require("readline");
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 // 서로 다른 세자리 수 생성 함수 (랜덤값)
-function generateRandomNumbers() {
+function generateThreeUniqueDigits() {
     var randomNumbers = [];
     while (randomNumbers.length < 3) {
         var num = Math.floor(Math.random() * 9 + 1);
-        var checkDuplicate = false;
-        var i = 0;
-        while (i < randomNumbers.length) {
-            if (randomNumbers[i] === num) {
-                checkDuplicate = true;
-                break;
-            }
-            i++;
-        }
-        if (checkDuplicate === false) {
+        // set
+        // let checkDuplicate = false;
+        // let i = 0;
+        // while (i < randomNumbers.length) {
+        //     if (randomNumbers[i] === num) {
+        //         checkDuplicate = true;
+        //         break;
+        //     }
+        //     i++;
+        // }
+        // if (checkDuplicate === false) {
+        //     randomNumbers.push(num);
+        // }
+        if (!randomNumbers.includes(num))
             randomNumbers.push(num);
-        }
     }
     return randomNumbers;
 }
 // 스트라이크, 볼, 낫싱 계산 함수
-function getHint(computerNumber, userNumber) {
+function countResults(computerNumber, userNumber) {
     var strikes = 0;
     var balls = 0;
-    var i = 0;
-    while (i < 3) {
-        if (computerNumber[i] === userNumber[i]) {
+    var digit = 0;
+    while (digit < 3) {
+        if (computerNumber[digit] === userNumber[digit]) {
             strikes++;
         }
-        else {
-            var j = 0;
-            while (j < 3) {
-                if (computerNumber[j] === userNumber[i]) {
-                    balls++;
-                    break;
-                }
-                j++;
-            }
+        else if (computerNumber.includes(userNumber[digit])) {
+            balls++;
         }
-        i++;
+        digit++;
     }
+    return [strikes, balls];
+}
+// 결과 출력 함수
+function getHint(computerNumber, userNumber) {
+    var _a = countResults(computerNumber, userNumber), strikes = _a[0], balls = _a[1];
     if (strikes === 0 && balls === 0) {
         return '낫싱';
     }
@@ -91,37 +96,41 @@ function getHint(computerNumber, userNumber) {
         return "".concat(balls, "\uBCFC ").concat(strikes, "\uC2A4\uD2B8\uB77C\uC774\uD06C");
     }
 }
+function isValidInput(userNumber) {
+    return (userNumber.length !== 3 ||
+        userNumber.includes(0) ||
+        new Set(userNumber).size !== 3);
+}
+function getUserInput() {
+    return (new Promise(function (resolve) {
+        return rl.question('숫자를 입력해주세요: ', function (userInput) {
+            return resolve(userInput.split('').map(Number));
+        });
+    }));
+}
 // 게임 시작 함수
-function gameStart(rl) {
+function gameStart() {
     return __awaiter(this, void 0, void 0, function () {
-        var computerNumber, userInput, userNumber, result;
+        var computerNumber, userNumber, hint;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log('\n');
-                    console.log('컴퓨터가 숫자를 뽑았습니다.\n');
-                    computerNumber = generateRandomNumbers();
+                    computerNumber = generateThreeUniqueDigits();
+                    console.log('\n컴퓨터가 숫자를 뽑았습니다.\n');
                     _a.label = 1;
                 case 1:
                     if (!true) return [3 /*break*/, 3];
-                    return [4 /*yield*/, new Promise(function (resolve) {
-                            return rl.question('숫자를 입력해주세요: ', resolve);
-                        })];
+                    return [4 /*yield*/, getUserInput()];
                 case 2:
-                    userInput = _a.sent();
-                    userNumber = userInput.split('').map(Number);
-                    if (userNumber.length !== 3 ||
-                        userNumber.includes(0) ||
-                        new Set(userNumber).size !== 3) {
+                    userNumber = _a.sent();
+                    if (isValidInput(userNumber)) {
                         console.log('1~9까지의 숫자 중에서 서로 다른 세자리 수를 입력하세요.\n');
                         return [3 /*break*/, 1];
                     }
-                    result = getHint(computerNumber, userNumber);
-                    console.log(result);
-                    if (result === '3스트라이크') {
-                        console.log('\n');
-                        console.log('3개의 숫자를 모두 맞히셨습니다.');
-                        console.log('-------게임 종료-------');
+                    hint = getHint(computerNumber, userNumber);
+                    console.log(hint);
+                    if (hint === '3스트라이크') {
+                        console.log('\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------\n');
                         return [3 /*break*/, 3];
                     }
                     return [3 /*break*/, 1];
@@ -133,42 +142,31 @@ function gameStart(rl) {
 // 애플리케이션 실행 함수
 function applicationStart() {
     return __awaiter(this, void 0, void 0, function () {
-        var rl, input;
+        var input;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    rl = readline.createInterface({
-                        input: process.stdin,
-                        output: process.stdout,
-                    });
-                    _a.label = 1;
+                    if (!true) return [3 /*break*/, 5];
+                    return [4 /*yield*/, new Promise(function (resolve) { return rl.question('게임을 새로 시작하려면 1, 종료하려면 9를 입력하세요.\n', resolve); })];
                 case 1:
-                    if (!true) return [3 /*break*/, 6];
-                    return [4 /*yield*/, new Promise(function (resolve) {
-                            return rl.question('게임을 새로 시작하려면 1, 종료하려면 9를 입력하세요.\n', resolve);
-                        })];
-                case 2:
                     input = _a.sent();
-                    if (!(input === '1')) return [3 /*break*/, 4];
-                    return [4 /*yield*/, gameStart(rl)];
-                case 3:
+                    if (!(input === '1')) return [3 /*break*/, 3];
+                    return [4 /*yield*/, gameStart()];
+                case 2:
                     _a.sent();
-                    return [3 /*break*/, 5];
-                case 4:
+                    return [3 /*break*/, 4];
+                case 3:
                     if (input === '9') {
-                        // console.log('\n');
                         console.log('\n애플리케이션이 종료되었습니다.');
                         rl.close();
-                        return [3 /*break*/, 6];
+                        return [3 /*break*/, 5];
                     }
                     else {
-                        console.log('잘못된 입력입니다. 1 또는 9를 입력해주세요.');
+                        console.log('\n잘못된 입력입니다. 1 또는 9를 입력해주세요.\n');
                     }
-                    _a.label = 5;
-                case 5:
-                    console.log('\n');
-                    return [3 /*break*/, 1];
-                case 6: return [2 /*return*/];
+                    _a.label = 4;
+                case 4: return [3 /*break*/, 0];
+                case 5: return [2 /*return*/];
             }
         });
     });
