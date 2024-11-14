@@ -77,7 +77,7 @@ const getHintMessage = (randomNumber: number[], userNumber: number[]) : string =
     }
 }
 
-async function gameStart(): Promise<void> {
+const gameStart = async(): Promise<void> => {
     const randomNumber = generateThreeRandomNumber(); //
     console.log('\n컴퓨터가 숫자를 뽑았습니다.\n');
 
@@ -101,7 +101,7 @@ async function gameStart(): Promise<void> {
     }
 }
 
-async function applicationStart(): Promise<void> {
+const applicationStart = async(): Promise<void> => {
     while (true) {
         const input = await new Promise<string>((resolve) => inputInterface.question(
             '게임을 새로 시작하려면 1, 종료하려면 9를 입력하세요.\n', resolve
