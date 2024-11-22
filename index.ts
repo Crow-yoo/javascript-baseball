@@ -20,6 +20,7 @@ interface Computer {
 interface User {
     numbers: BallNumber[];
     submitCount: number;
+    attempts: number; // 시도 횟수
 };
 
 // 게임 결과 인터페이스
@@ -98,11 +99,18 @@ const getHintMessage = (computerNumbers: BallNumber[], userNumbers: BallNumber[]
     return `${balls ? `${balls}볼` : ''} ${strikes ? `${strikes}스트라이크` : ''}`.trim();
 };
 
-// 사용자 승리 함수
-const finishGame = (startTime: Date, attempts: number): void => {
-    console.log('\n사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------\n');
-    gameRecord.totalGames++;
-    gameRecord.userWins++;
+// 승패 결정 함수
+const finishGame = (startTime: Date, attempts: number, winner : 'User' | 'Computer'): void => {
+    if (winner === 'User') {
+        console.log('\n사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------\n');
+        gameRecord.totalGames++;
+        gameRecord.userWins++;
+    } else {
+        console.log('\n컴퓨터가 승리하였습니다.\n-------게임 종료-------\n');
+        gameRecord.totalGames++;
+        gameRecord.computerWins++;
+    }
+
     gameRecord.results.push({
         id: gameRecord.results.length + 1,
         startTime: startTime.toISOString(),
@@ -126,7 +134,9 @@ const playGame = async (computer: Computer, user: User, startTime: Date): Promis
     console.log(hint);
 
     if (hint === '3스트라이크') {
-        finishGame(startTime, user.submitCount);
+        finishGame(startTime, user.submitCount, 'User');
+    } else if (user.submitCount >= user.attempts) {
+        finishGame(startTime, user.submitCount, 'Computer');
     } else {
         return playGame(computer, user, startTime); // 계속 진행
     }
@@ -135,7 +145,16 @@ const playGame = async (computer: Computer, user: User, startTime: Date): Promis
 // 게임 시작
 const start = async (): Promise<void> => {
     const computer: Computer = { numbers: generateThreeRandomNumbers() };
-    const user: User = { numbers: [], submitCount: 0 };
+    const user: User = { numbers: [], submitCount: 0 , attempts : 0};
+
+    // 최대 시도 횟수 입력 받기
+    const userAttempts = await new Promise<number>((resolve) => {
+        inputInterface.question('\n컴퓨터에게 승리하기 위해 몇번만에 성공해야 하나요?\n', (input) => {
+            resolve(parseInt(input, 10));
+        });
+    });
+
+    user.attempts = userAttempts;
     const startTime = new Date();
 
     console.log('\n컴퓨터가 숫자를 뽑았습니다.\n');
@@ -146,7 +165,7 @@ const start = async (): Promise<void> => {
 const applicationStart = async (): Promise<void> => {
     const input = await new Promise<string>((resolve) =>
         inputInterface.question(
-            '게임을 새로 시작하려면 1, 기록을 보려면 2, 통계를 보려면 3, 종료하려면 9를 입력하세요.',
+            '게임을 새로 시작하려면 1, 기록을 보려면 2, 통계를 보려면 3, 종료하려면 9를 입력하세요.\n',
             resolve
         )
     );
