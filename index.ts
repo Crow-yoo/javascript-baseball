@@ -101,6 +101,17 @@ const getHintMessage = (computerNumbers: BallNumber[], userNumbers: BallNumber[]
     return `${balls ? `${balls}볼` : ''} ${strikes ? `${strikes}스트라이크` : ''}`.trim();
 };
 
+// 날짜 및 시간 포맷팅 함수
+const formatDateTime = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}. ${month}. ${day} ${hours}:${minutes}`;
+};
+
 // 승패 결정 함수
 const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'): void => {
     const endTime = new Date();
@@ -120,8 +131,8 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
 
     gameRecord.results.push({
         id: gameRecord.results.length + 1,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: formatDateTime(startTime), 
+        endTime: formatDateTime(endTime),     
         attempts : user.submitCount,
         winner,
         history : user.history,
@@ -177,17 +188,18 @@ const showRecords = (): void => {
     } else {
         gameRecord.results.forEach((result) => {
             console.log(
-                `- [${result.id}] / 시작시간: ${new Date(result.startTime).toLocaleString()} / 종료시간: ${new Date(
-                    result.endTime
-                ).toLocaleString()} / 횟수: ${result.attempts} / 승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}`
+                `- [${result.id}] / 시작시간: ${result.startTime} / 종료시간: ${result.endTime} / 횟수: ${result.attempts} / 승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}`
             );
             console.log('\n컴퓨터가 숫자를 뽑았습니다.\n');
             result.history.forEach(({ userInput, hint }) => {
-                console.log(`숫자를 입력해주세요 : ${userInput.join('')}\n${hint}`);
+                if (userInput.length > 0) {
+                    console.log(`숫자를 입력해주세요 : ${userInput.join('')}`);
+                }
+                console.log(hint);
             });
         });
     }
-    console.log('-------기록 종료-------\n');
+    console.log('-------기록 종료-------');
     applicationStart();
 };
 
@@ -195,7 +207,7 @@ const showRecords = (): void => {
 const applicationStart = async (): Promise<void> => {
     const input = await new Promise<string>((resolve) =>
         inputInterface.question(
-            '게임을 새로 시작하려면 1, 기록을 보려면 2, 통계를 보려면 3, 종료하려면 9를 입력하세요.\n',
+            '\n게임을 새로 시작하려면 1, 기록을 보려면 2, 통계를 보려면 3, 종료하려면 9를 입력하세요.\n',
             resolve
         )
     );
