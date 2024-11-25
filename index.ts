@@ -8,6 +8,7 @@ enum GameState {
     runningGame = 'RUNNING',
     startGame = '1',
     showRecords = '2',
+    showStats = '3',
     endGame = '9'
 };
 
@@ -117,18 +118,20 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
     const endTime = new Date();
 
     gameRecord.totalGames++;
+
     if (winner === 'User') {
-        const userMessage = '\n사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
+        const userMessage = '사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
         console.log(userMessage);
         gameRecord.userWins++;
         user.history.push({ userInput: [], hint: userMessage });
     } else {
-        const computerMessage = '\n컴퓨터가 승리하였습니다.\n-------게임 종료-------'
+        const computerMessage = '컴퓨터가 승리하였습니다.\n-------게임 종료-------'
         console.log(computerMessage);
         gameRecord.computerWins++;
         user.history.push({ userInput: [], hint: computerMessage });
     }
 
+    // 게임 기록 저장
     gameRecord.results.push({
         id: gameRecord.results.length + 1,
         startTime: formatDateTime(startTime), 
@@ -185,21 +188,86 @@ const start = async (): Promise<void> => {
 const showRecords = (): void => {
     if (gameRecord.results.length === 0) {
         console.log('\n아직 진행된 게임이 없습니다.\n');
-    } else {
-        gameRecord.results.forEach((result) => {
-            console.log(
-                `- [${result.id}] / 시작시간: ${result.startTime} / 종료시간: ${result.endTime} / 횟수: ${result.attempts} / 승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'}`
-            );
-            console.log('\n컴퓨터가 숫자를 뽑았습니다.\n');
-            result.history.forEach(({ userInput, hint }) => {
-                if (userInput.length > 0) {
-                    console.log(`숫자를 입력해주세요 : ${userInput.join('')}`);
-                }
-                console.log(hint);
-            });
-        });
+        applicationStart();
+        return;
     }
-    console.log('-------기록 종료-------');
+
+    // 게임 진행 내역 (선택적으로 출력 가능)
+    const recordsDetails = gameRecord.results
+        .map(
+            (result) =>
+        `\n[게임 회차: ${result.id}] \n시작: ${result.startTime} | 종료: ${result.endTime} | 총 시도: ${result.attempts}회 \n승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'} \n진행 내역: \n${result.history
+        .filter(({ userInput }) => userInput.length > 0) // 입력값이 있는 경우만 출력
+        .map(({ userInput, hint }, index) =>
+        ` ${index + 1}. 입력: ${userInput.join('')} | 결과: ${hint}`).join('\n')} \n결과 메시지: ${result.history[result.history.length - 1]?.hint || ''}`)
+        .join('\n-------------------------\n');
+
+    console.log('\n------- 게임 진행 상세 내역 -------');
+    console.log(recordsDetails.trim());
+    console.log('-------------------------\n------- 기록 종료 -------\n');
+
+    applicationStart();
+};
+
+// 통계 기능 구현
+const showStats = (): void => {
+    if (gameRecord.results.length === 0) {
+        console.log('\n아직 진행된 게임이 없습니다.\n');
+        applicationStart();
+        return;
+    }
+    const userWinCounts = gameRecord.results
+        .filter(result => result.winner === 'User')
+        .map(result => result.attempts);
+    const computerWinCounts = gameRecord.results
+        .filter(result => result.winner === 'Computer')
+        .map(result => result.attempts);
+    const maxAttemptCounts = gameRecord.results.map(result => result.attempts); // 입력한 최대 시도 횟수 데이터
+    const calculateAverage = (values: number[]): string =>
+        values.length > 0
+            ? (values.reduce((sum, count) => sum + count, 0) / values.length).toFixed(2)
+            : '0.00';
+    const safeMin = (values: number[]): number =>
+        values.length > 0 ? Math.min(...values) : 0;
+    const safeMax = (values: number[]): number =>
+        values.length > 0 ? Math.max(...values) : 0;
+    const calculateMostFrequent = (values: number[]): number => {
+        if (values.length === 0) return 0;
+        const frequency: Record<number, number> = {};
+        values.forEach(value => {
+            frequency[value] = (frequency[value] || 0) + 1;
+        });
+        const maxFrequency = Math.max(...Object.values(frequency));
+        return parseInt(Object.keys(frequency).find(key => frequency[parseInt(key)] === maxFrequency) || '0', 10);
+    };
+    const stats = {
+        maxAttempts: safeMax(maxAttemptCounts),
+        minAttempts: safeMin(maxAttemptCounts),
+        mostAppliedUserWins: userWinCounts.length,
+        mostAppliedComputerWins: computerWinCounts.length,
+        maxUserWins: Math.max(...userWinCounts, 0),
+        maxComputerWins: Math.max(...computerWinCounts, 0),
+        minUserWins: safeMin(userWinCounts),
+        minComputerWins: safeMin(computerWinCounts),
+        avgUserWins: calculateAverage(userWinCounts),
+        avgComputerWins: calculateAverage(computerWinCounts),
+        mostFrequentUserWin: calculateMostFrequent(userWinCounts),
+        mostFrequentComputerWin: calculateMostFrequent(computerWinCounts),
+    };
+    console.log('\n------- 통계 -------');
+    console.log(`가장 적은 횟수: ${stats.minAttempts}회`);
+    console.log(`가장 많은 횟수: ${stats.maxAttempts}회`);
+    console.log(`가장 많이 적용된 승리 횟수: ${stats.mostAppliedUserWins}`);
+    console.log(`가장 많이 적용된 패배 횟수: ${stats.mostAppliedComputerWins}`);
+    console.log(`가장 큰 값으로 적용된 승리 횟수: ${stats.maxUserWins}`);
+    console.log(`가장 큰 값으로 적용된 패배 횟수: ${stats.maxComputerWins}`);
+    console.log(`가장 적은 값으로 적용된 승리 횟수: ${stats.minUserWins}`);
+    console.log(`가장 적은 값으로 적용된 패배 횟수: ${stats.minComputerWins}`);
+    console.log(`적용된 승리 횟수 평균: ${stats.avgUserWins}`);
+    console.log(`적용된 패배 횟수 평균: ${stats.avgComputerWins}`);
+    console.log(`컴퓨터가 가장 많이 승리한 승리 횟수: ${stats.mostFrequentComputerWin}회`);
+    console.log(`사용자가 가장 많이 승리한 승리 횟수: ${stats.mostFrequentUserWin}회`);
+    console.log('-------------------\n');
     applicationStart();
 };
 
@@ -216,6 +284,8 @@ const applicationStart = async (): Promise<void> => {
         await start();
     } else if (input === GameState.showRecords) {
         showRecords();
+    } else if (input === GameState.showStats) {
+        showStats();
     } else if (input === GameState.endGame) {
         console.log('\n애플리케이션이 종료되었습니다.');
         inputInterface.close();
