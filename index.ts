@@ -120,12 +120,12 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
     gameRecord.totalGames++;
 
     if (winner === 'User') {
-        const userMessage = '사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
+        const userMessage = '\n사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
         console.log(userMessage);
         gameRecord.userWins++;
         user.history.push({ userInput: [], hint: userMessage });
     } else {
-        const computerMessage = '컴퓨터가 승리하였습니다.\n-------게임 종료-------'
+        const computerMessage = '\n컴퓨터가 승리하였습니다.\n-------게임 종료-------'
         console.log(computerMessage);
         gameRecord.computerWins++;
         user.history.push({ userInput: [], hint: computerMessage });
