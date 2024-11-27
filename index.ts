@@ -194,20 +194,19 @@ const showRecords = (): void => {
     const recordsDetails = gameRecord.results
         .map(
             (result) =>
-        `\n[게임 회차: ${result.id}] \n시작: ${result.startTime} | 종료: ${result.endTime} | 총 시도: ${result.attempts}회 \n승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'} \n진행 내역: \n${result.history
+        `\n[게임 회차: ${result.id}] \n시작: ${result.startTime} | 종료: ${result.endTime} | 총 시도: ${result.attempts}회 \n승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'} \n진행 내역. \n${result.history
         .filter(({ userInput }) => userInput.length > 0) 
         .map(({ userInput, computerMessage }, index) =>
-        ` ${index + 1}. 입력: ${userInput.join('')} | 결과: ${computerMessage}`).join('\n')} \n결과 메시지 ${result.history[result.history.length - 1]?.computerMessage || ''}`)
-        .join('\n-------------------------\n');
+        ` ${index + 1}. 입력: ${userInput.join('')} | 결과: ${computerMessage}`).join('\n')} \n결과 메시지. ${result.history[result.history.length - 1]?.computerMessage || ''}`)
+        .join('\n');
 
-    console.log('\n------- 게임 진행 상세 내역 -------');
+    console.log('\n-------진행된 게임 내역-------');
     console.log(recordsDetails.trim());
-    console.log('-------------------------\n------- 기록 종료 -------\n');
 
     applicationStart();
 };
 
-// 통계 기능 구현
+// 통계 함수
 const showStats = (): void => {
     if (gameRecord.results.length === 0) {
         console.log('\n아직 진행된 게임이 없습니다.\n');
@@ -252,7 +251,7 @@ const showStats = (): void => {
         mostFrequentUserWin: calculateMostFrequent(userWinCounts),
         mostFrequentComputerWin: calculateMostFrequent(computerWinCounts),
     };
-    console.log('\n------- 통계 -------');
+    console.log('\n------- 게임 통계 -------');
     console.log(`가장 적은 횟수: ${stats.minAttempts}회`);
     console.log(`가장 많은 횟수: ${stats.maxAttempts}회`);
     console.log(`가장 많이 적용된 승리 횟수: ${stats.mostAppliedUserWins}`);
@@ -265,7 +264,7 @@ const showStats = (): void => {
     console.log(`적용된 패배 횟수 평균: ${stats.avgComputerWins}`);
     console.log(`컴퓨터가 가장 많이 승리한 승리 횟수: ${stats.mostFrequentComputerWin}회`);
     console.log(`사용자가 가장 많이 승리한 승리 횟수: ${stats.mostFrequentUserWin}회`);
-    console.log('-------------------\n');
+    console.log('-------------------------');
     applicationStart();
 };
 
@@ -273,7 +272,7 @@ const showStats = (): void => {
 const applicationStart = async (): Promise<void> => {
     const input = await new Promise<string>((resolve) =>
         inputInterface.question(
-            '\n게임을 새로 시작하려면 1, 기록을 보려면 2, 통계를 보려면 3, 종료하려면 9를 입력하세요.\n',
+            '\n게임을 새로 시작하려면 숫자 1번, 기록은 2번, 통계는 3번, 종료는 9번을 입력해주세요 :)\n',
             resolve
         )
     );
