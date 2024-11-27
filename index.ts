@@ -1,3 +1,4 @@
+// fork 레포로 이동용
 import * as readline from 'readline';
 
 // BallNumber 타입 선언
