@@ -21,8 +21,8 @@ interface Computer {
 interface User {
     numbers: BallNumber[];
     submitCount: number;
-    attempts: number; // 시도 횟수
-    history: { userInput: BallNumber[]; hint: string }[];
+    attempts: number; 
+    history: { userInput: BallNumber[]; computerMessage: string }[];
 };
 
 // 게임 결과 인터페이스
@@ -32,7 +32,7 @@ interface GameResult {
     endTime: string;
     attempts: number;
     winner: 'User' | 'Computer';
-    history: { userInput: BallNumber[]; hint: string }[];
+    history: { userInput: BallNumber[]; computerMessage: string }[];
 };
 
 // 게임 기록 인터페이스 
@@ -77,7 +77,7 @@ const getUserInput = () : Promise<BallNumber[]> => {
 const isValidInput = (userNumbers : BallNumber[]) : boolean => {
     return (
         userNumbers.length === 3 &&
-        userNumbers.every(num => num >= 1 && num <= 9) && // 0이 들어가면 오류가 나서 로직 변경
+        userNumbers.every(num => num >= 1 && num <= 9) && 
         new Set(userNumbers).size === 3
     );
 };
@@ -92,8 +92,8 @@ const getBallCount = (computerNumbers: BallNumber[], userNumbers: BallNumber[]):
     return userNumbers.filter((num, index) => num !== computerNumbers[index] && computerNumbers.includes(num)).length;
 };
 
-// 힌트 메시지 생성
-const getHintMessage = (computerNumbers: BallNumber[], userNumbers: BallNumber[]): string => {
+// 숫자 비교 결과
+const getComparingMessage = (computerNumbers: BallNumber[], userNumbers: BallNumber[]): string => {
     const strikes = getStrikeCount(computerNumbers, userNumbers);
     const balls = getBallCount(computerNumbers, userNumbers);
 
@@ -105,7 +105,7 @@ const getHintMessage = (computerNumbers: BallNumber[], userNumbers: BallNumber[]
 // 날짜 및 시간 포맷팅 함수
 const formatDateTime = (date: Date): string => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -123,15 +123,14 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
         const userMessage = '\n사용자가 승리하였습니다.\n\n3개의 숫자를 모두 맞히셨습니다.\n-------게임 종료-------'
         console.log(userMessage);
         gameRecord.userWins++;
-        user.history.push({ userInput: [], hint: userMessage });
+        user.history.push({ userInput: [], computerMessage: userMessage });
     } else {
         const computerMessage = '\n컴퓨터가 승리하였습니다.\n-------게임 종료-------'
         console.log(computerMessage);
         gameRecord.computerWins++;
-        user.history.push({ userInput: [], hint: computerMessage });
+        user.history.push({ userInput: [], computerMessage: computerMessage });
     }
 
-    // 게임 기록 저장
     gameRecord.results.push({
         id: gameRecord.results.length + 1,
         startTime: formatDateTime(startTime), 
@@ -141,7 +140,7 @@ const finishGame = (startTime: Date, user : User, winner : 'User' | 'Computer'):
         history : user.history,
     });
 
-    applicationStart(); // 게임 종료 후 다시 입력 받기
+    applicationStart(); 
 };
 
 // 게임 진행
@@ -149,19 +148,20 @@ const playGame = async (computer: Computer, user: User, startTime: Date): Promis
     const userNumbers = await getUserInput();
     if (!isValidInput(userNumbers)) {
         console.log('유효하지 않은 입력입니다. 다시 입력해주세요.');
-        return playGame(computer, user, startTime); // 재귀로 재입력 유도
+        return playGame(computer, user, startTime); 
     }
     user.submitCount++;
-    const hint = getHintMessage(computer.numbers, userNumbers);
-    console.log(hint);
-    user.history.push({ userInput: userNumbers, hint });
 
-    if (hint === '3스트라이크') {
+    const comparingResult = getComparingMessage(computer.numbers, userNumbers);
+    console.log(comparingResult);
+    user.history.push({ userInput: userNumbers, computerMessage : comparingResult}); 
+
+    if (comparingResult === '3스트라이크') {
         finishGame(startTime, user, 'User');
     } else if (user.submitCount >= user.attempts) {
         finishGame(startTime, user, 'Computer');
     } else {
-        return playGame(computer, user, startTime); // 계속 진행
+        return playGame(computer, user, startTime); 
     }
 };
 
@@ -170,7 +170,6 @@ const start = async (): Promise<void> => {
     const computer: Computer = { numbers: generateThreeRandomNumbers() };
     const user: User = { numbers: [], submitCount: 0 , attempts : 0, history : []};
 
-    // 최대 시도 횟수 입력 받기
     const userAttempts = await new Promise<number>((resolve) => {
         inputInterface.question('\n컴퓨터에게 승리하기 위해 몇번만에 성공해야 하나요?\n', (input) => {
             resolve(parseInt(input, 10));
@@ -192,14 +191,13 @@ const showRecords = (): void => {
         return;
     }
 
-    // 게임 진행 내역 (선택적으로 출력 가능)
     const recordsDetails = gameRecord.results
         .map(
             (result) =>
         `\n[게임 회차: ${result.id}] \n시작: ${result.startTime} | 종료: ${result.endTime} | 총 시도: ${result.attempts}회 \n승리자: ${result.winner === 'User' ? '사용자' : '컴퓨터'} \n진행 내역: \n${result.history
-        .filter(({ userInput }) => userInput.length > 0) // 입력값이 있는 경우만 출력
-        .map(({ userInput, hint }, index) =>
-        ` ${index + 1}. 입력: ${userInput.join('')} | 결과: ${hint}`).join('\n')} \n결과 메시지: ${result.history[result.history.length - 1]?.hint || ''}`)
+        .filter(({ userInput }) => userInput.length > 0) 
+        .map(({ userInput, computerMessage }, index) =>
+        ` ${index + 1}. 입력: ${userInput.join('')} | 결과: ${computerMessage}`).join('\n')} \n결과 메시지 ${result.history[result.history.length - 1]?.computerMessage || ''}`)
         .join('\n-------------------------\n');
 
     console.log('\n------- 게임 진행 상세 내역 -------');
@@ -222,7 +220,7 @@ const showStats = (): void => {
     const computerWinCounts = gameRecord.results
         .filter(result => result.winner === 'Computer')
         .map(result => result.attempts);
-    const maxAttemptCounts = gameRecord.results.map(result => result.attempts); // 입력한 최대 시도 횟수 데이터
+    const maxAttemptCounts = gameRecord.results.map(result => result.attempts); 
     const calculateAverage = (values: number[]): string =>
         values.length > 0
             ? (values.reduce((sum, count) => sum + count, 0) / values.length).toFixed(2)
@@ -291,7 +289,7 @@ const applicationStart = async (): Promise<void> => {
         inputInterface.close();
     } else {
         console.log('잘못된 입력입니다. 1, 2, 3, 9를 입력해주세요.');
-        applicationStart(); // 게임 기록을 확인한 후 다시 입력 받기
+        applicationStart(); 
     }
 };
 
